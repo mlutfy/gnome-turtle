@@ -1,0 +1,59 @@
+Gnome Turtle
+------------
+
+  Written by: Mathieu Lutfy <mathieu@bidon.ca>
+  Copyright: See "COPYING" file.
+  Website: http://www.bidon.ca/gnome-turtle/
+
+Gnome Turtle (gnome-turtle) draws fractals from L-Systems in the
+GNOME 2 environment. It is intended to be a pseudo-academic and 
+entertaining program to learn how to draw fractals with L-Systems.
+
+- Why?
+
+I was reading a book called "The Computational Beauty of Nature" by
+Gary William Flake, when I stumbled apon the chapter on how to draw
+fractals with L-Systems (based on Noam Chomsky's formal languages).
+
+I couldn't find the "lsys" program that was refered to in the book,
+so I decided to write one for the Gnome 2 environment. The program
+was written fairly quickly, and hence you may find a few strange 
+things in the code, such as how flex/bison is used.
+
+- Examples?
+
+Sure, take a look at the "examples" directory. Not all of them work,
+and others you may need to adapt to your environment, as this program
+has not been heavily tested.
+
+I found this fairly good random site from a search engine:
+http://spanky.triumf.ca/www/fractint/lsys/tutor.html
+
+.. altough they don't use the same syntax as mine :-)
+
+- Contributing code / examples
+
+You're most welcomed to do so. Just e-mail me: mathieu@bidon.ca with
+a diff and explanation of what it does. Try to keep with the coding
+standards I've used (Gnome-ish) and send only a small diff. Keep in
+mind that if your diff is too big and I cannot easily understand it,
+I will not feel like applying it.
+
+- About the code ..
+
+I'm not very familiar with GNOME, so I took a look at the "gnibbles"
+program from gnome-games, and copied the basic interface. Since they
+used a Pixmap widget for the main window, and that this was not 
+appropriate for this program, I replaced it with a gnome canvas. This
+is the main reason why the menus say "Game" and maybe I will fix that
+one day, but I tought it was convenient to build an interface in less
+than an hour.
+
+I used flex/bison only to validate the input, because I'm a very lazy
+person. The flex/bison input files (turtle-parser.{l,y}) are not yet
+in the "autogen" build system, as I still haven't figured that out. :)
+It may change in the future, and suggestions are welcomed.
+
+The input is therefore first validated, then recursively drawn on the
+screen. The drawing is not particularly fault tolerant at the moment.
+

@@ -1,0 +1,9 @@
+/* This is not working */
+Axiom: F18 - F18 - F18 - F
+Rules: F -> F17 - F34 + F17 - F
+Angle: 0
+Sigma: 0.9
+Tetha: 5
+Depth: 2
+xyinit: 10 100
+xyscale: 1 1

@@ -1,0 +1,8 @@
+Axiom: F
+Rules: F -> [+F][+ G - - G4 - F]; G -> - G + + G -
+Angle: 0
+Sigma: 0.9
+Tetha: 45
+Depth: 5
+xyinit: 50 50
+xyscale: 7 7

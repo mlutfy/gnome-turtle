@@ -1,0 +1,8 @@
+Axiom: F - F - F - F
+Rules: F -> F[F] - F + F[--F] + F - F
+Angle: 0
+Sigma: 0.7
+Tetha: 90
+Depth: 3
+xyinit: 10 100
+xyscale: 4 4

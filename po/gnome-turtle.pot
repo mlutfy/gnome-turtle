@@ -1,0 +1,268 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2001-04-07 17:27+0930\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: ENCODING\n"
+
+#: src/gui-callbacks.c:67 src/gui.c:33
+msgid "GNOME Breakout"
+msgstr ""
+
+#: src/gui.c:126
+msgid "Score: 0"
+msgstr ""
+
+#: src/gui.c:128
+msgid "Lives: 0"
+msgstr ""
+
+#: src/gui.c:180
+#, c-format
+msgid "No: %d"
+msgstr ""
+
+#: src/gui.c:185
+#, c-format
+msgid "Name: %s"
+msgstr ""
+
+#: src/gui.c:186
+#, c-format
+msgid "Author: %s"
+msgstr ""
+
+#: src/gui.c:187
+#, c-format
+msgid "Levelfile: %s"
+msgstr ""
+
+#: src/gui.c:189 src/gui.c:366
+msgid "Name:"
+msgstr ""
+
+#: src/gui.c:190 src/gui.c:367
+msgid "Author:"
+msgstr ""
+
+#: src/gui.c:191
+msgid "Filename:"
+msgstr ""
+
+#: src/gui.c:205
+#, c-format
+msgid "Score: %d"
+msgstr ""
+
+#: src/gui.c:212
+#, c-format
+msgid "Lives: %d"
+msgstr ""
+
+#. FIXME: Remove this when appropriate
+#: src/gui.c:230
+msgid "_Kill ball"
+msgstr ""
+
+#: src/gui.c:231
+msgid "Kill the current ball if it gets stuck"
+msgstr ""
+
+#: src/gui.c:305
+msgid "GNOME Breakout: You win!"
+msgstr ""
+
+#: src/gui.c:308
+msgid "GNOME Breakout: You lose!"
+msgstr ""
+
+#: src/gui.c:365
+msgid "No:"
+msgstr ""
+
+#: src/gui.c:368
+msgid "Levelfile:"
+msgstr ""
+
+#: src/gui-callbacks.c:56
+msgid ""
+"The classic arcade game Breakout. Written for my cat, Marmalade. (Hi, Jason! "
+"Hi, Matt! Hi, JV! Hi, Joe! Hi, Tom! Hi, Richard!)\n"
+" \n"
+"This, if you haven't guessed yet, is a development release. Send bugreports "
+"and comments to alcaron@senet.com.au, but check to see if they haven't "
+"already been listed in TODO or BUGS.\n"
+" \n"
+"Also, I've noticed a couple of segfaults that seem to happen randomly, and "
+"I'm having trouble reproducing them. So run this under gdb, and if it dies, "
+"send me the backtrace."
+msgstr ""
+
+#: src/gui-callbacks.c:68
+msgid "Copyright (c) 2000 Michael Pearson"
+msgstr ""
+
+#: src/gui-callbacks.c:178 src/gui-preferences.c:102
+msgid "Help hasn't been implimented yet. So go ahead and write some for me :)"
+msgstr ""
+
+#: src/gui-callbacks.c:229
+msgid "GNOME Breakout: Scores"
+msgstr ""
+
+#: src/gui-preferences.c:127
+msgid "GNOME Breakout Preferences"
+msgstr ""
+
+#. Vbox and Tablabel - Constructor
+#: src/gui-preferences.c:167
+msgid "Game"
+msgstr ""
+
+#: src/gui-preferences.c:185
+msgid "Levels"
+msgstr ""
+
+#: src/gui-preferences.c:188
+msgid ""
+"Levels cannot be added or removed\n"
+"while the game is running."
+msgstr ""
+
+#: src/gui-preferences.c:191
+msgid "Add"
+msgstr ""
+
+#: src/gui-preferences.c:192
+msgid "Remove"
+msgstr ""
+
+#: src/gui-preferences.c:244
+msgid "Difficulty"
+msgstr ""
+
+#: src/gui-preferences.c:246
+msgid "Difficulty (next game)"
+msgstr ""
+
+#: src/gui-preferences.c:250
+msgid "Easy"
+msgstr ""
+
+#: src/gui-preferences.c:252
+msgid "Medium"
+msgstr ""
+
+#: src/gui-preferences.c:254
+msgid "Hard"
+msgstr ""
+
+#. Automatic Pause Frame - Constructor
+#: src/gui-preferences.c:298
+msgid "Automatic Pause"
+msgstr ""
+
+#: src/gui-preferences.c:300
+msgid "When we lose keyboard focus"
+msgstr ""
+
+#: src/gui-preferences.c:301
+msgid "When the mouse pointer leaves the play window"
+msgstr ""
+
+#: src/gui-preferences.c:302
+msgid "When the preferences dialog is active"
+msgstr ""
+
+#: src/gui-preferences.c:330
+msgid "Hide the pointer"
+msgstr ""
+
+#. Bounce Entropy - Constructor
+#: src/gui-preferences.c:342
+msgid "Bounce Entropy (Experimental): "
+msgstr ""
+
+#: src/gui-preferences.c:419
+msgid "Control"
+msgstr ""
+
+#. Method Frame and Radio Buttons
+#: src/gui-preferences.c:427
+msgid "Method"
+msgstr ""
+
+#: src/gui-preferences.c:431
+msgid "Keyboard"
+msgstr ""
+
+#: src/gui-preferences.c:433
+msgid "Mouse"
+msgstr ""
+
+#. Bat speed
+#: src/gui-preferences.c:453
+msgid "Bat speed: "
+msgstr ""
+
+#. Keybindings Frame
+#: src/gui-preferences.c:473
+msgid "Keybindings"
+msgstr ""
+
+#: src/gui-preferences.c:483
+msgid "Left:"
+msgstr ""
+
+#: src/gui-preferences.c:500
+msgid "Right:"
+msgstr ""
+
+#: src/gui-preferences.c:517
+msgid "Fire One:"
+msgstr ""
+
+#: src/gui-preferences.c:534
+msgid "Fire Two:"
+msgstr ""
+
+#: src/flags.c:122
+msgid "Difficulty in config files is an incorrect value, resetting to defaults"
+msgstr ""
+
+#: src/flags.c:152
+msgid ""
+"Both keyboard control and mouse control are TRUE in user preferences, "
+"resetting to defaults"
+msgstr ""
+
+#: src/flags.c:157
+msgid ""
+"Neither keyboard control or mouse control are TRUE in user preferences, "
+"resetting to defaults"
+msgstr ""
+
+#: src/flags.c:177
+msgid "Bat speed is lower than allowed range, setting to lowest"
+msgstr ""
+
+#: src/flags.c:181
+msgid "Bat speed is higher than allowed range, setting to highest"
+msgstr ""
+
+#: src/flags.c:187
+msgid "Bounce entropy is lower than allowed range, setting to lowest"
+msgstr ""
+
+#: src/flags.c:191
+msgid "Bounce entropy is higher than allowed range, setting to highest"
+msgstr ""

@@ -1,0 +1,8 @@
+/* This is not working */
+Axiom: F4 - F4 - F4 - F4 - F
+Rules: F -> F4 - F4 - F10 - F + + F4 - F
+Angle: 0
+Tetha: 18
+Sigma: 0.65
+xyscale: 2 2
+xyinit: 50 50

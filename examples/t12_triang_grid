@@ -1,0 +1,10 @@
+/* http://spanky.triumf.ca/www/fractint/lsys/tilings.html */
+Axiom: X
+Rules: X -> FY[+FY][--FY]FY; Y -> FX[++FX][-FX]FX; F -> %
+Angle: 0
+Sigma: 0.8
+Tetha: 60
+Depth: 4
+xyscale: 2 2
+xyinit: 40 40
+

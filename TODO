@@ -1,0 +1,42 @@
+TODO / BUGS
+
+Critical
+--------
+
+- Fix Fx factors, where x = natural number, so that we can draw fractals such
+  as the Dragon-Curve.
+
+- Add Fx factors to - / + ?
+
+Non critical bugs
+-----------------
+
+- Printing prints upside down (?)
+
+- Add zoom factor (to replace AMP constant)
+
+Why not
+-------
+
+- Add dialog to enter new lsys definitions, to be more interactive.
+
+- Allow comments in the input files.
+
+- Allow input of multi-lingual documents. This would be an evil plot to
+  encourage people to use UTF-8 in non-latin languages, but it would be
+  entertaining to be, as I'm not sure how to do it with flex/bison.
+
+- Similar to the point above, allow LC_NUMERIC depending on locale or
+  read format (?)
+
+-------------------------------------------------------------------------------
+
+Recently finished/fixed (see ChangeLog for more information)
+-----------------------
+
+- LC_NUMERIC forced to "C"
+
+- Build "my_autogen" deletes source files on "make clean" and does not build
+  flex/bison files (run "bison -d turtle-parser.y; flex turtle-parser.l").
+
+- Add printing functionality (libgnomeprint).

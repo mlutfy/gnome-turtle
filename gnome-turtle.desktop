@@ -1,0 +1,14 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Gnome Turtle
+Name[bg]=Гноме костенурка
+Name[fr]=Tortue Gnome
+Comment=A turtle and lsys drawing program for GNOME
+Comment[bg]=Костенурка за Гноме + ..
+Comment[fr]=Jouez au jeu de carte de casino Blackjack
+Exec=gnome-turtle
+Icon=gnome-turtle.png
+Terminal=false
+Type=Application
+Categories=GNOME;Application;Game;
+StartupNotify=true

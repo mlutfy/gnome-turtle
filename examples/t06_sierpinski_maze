@@ -1,0 +1,9 @@
+/* This is not perfect */
+Axiom: F
+Rules: F -> [-G+++F][-G+F][GG--F]; G -> GG
+Angle: 0
+Sigma: 0.9
+Tetha: 60
+Depth: 5
+xyinit: 20 80
+xyscale: 2 2

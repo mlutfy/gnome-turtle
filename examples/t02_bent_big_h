@@ -1,0 +1,8 @@
+Axiom: [F]--F
+Rules: F -> |[+F][-F]
+Angle: 90
+Sigma: 0.65
+Tetha: 80
+Depth: 5
+xyscale: 20 20
+xyinit: 60 50

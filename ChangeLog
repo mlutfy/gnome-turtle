@@ -1,0 +1,27 @@
+2005-01-24  Mathieu Lutfy  <mathieu@bidon.ca>
+
+	* src/gnome-turtle.c : Added support for menu Edit -> Clear.
+
+2004-05-14  Mathieu Lutfy  <mathieu@bidon.ca>
+
+	* src/gnome-turtle.c : LC_NUMERIC now forced to "C"
+
+	* src/gnome-turtle.c : Added Open dialog, but it doesn't clear the canvas (!)
+
+	* src/gnome-turtle.c, src/turtle-helpers.c : Added basic printing.
+
+	* src/gnome-turtle.c : menus now look normal (Game replaced by File, added
+	Print, etc.) and changed the callback names.
+
+	* configure.in : added Lex/Yacc support.
+
+	* src/turtle-parser.l : renamed to src/turtle-scanner.l (this was causing
+		a very strange problem with automake/autoconf, badly included .h, etc.).
+	
+2004-05-12  Mathieu Lutfy  <mathieu@bidon.ca>
+
+	* First release 
+
+2004-05-08  Mathieu Lutfy  <mathieu@bidon.ca>
+
+	* Project started

@@ -1,0 +1,10 @@
+/* http://spanky.triumf.ca/www/fractint/lsys/tilings.html */
+/* Does not work */
+Axiom: F
+Rules: F -> -F+F+G[+F+F]-; G -> $$
+Angle: 0
+Sigma: 1.0
+Tetha: 60
+Depth: 1
+xyscale: 2 2
+xyinit: 40 40
