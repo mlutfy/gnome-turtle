@@ -3,7 +3,7 @@ Gnome Turtle
 
   Written by: Mathieu Lutfy <mathieu@bidon.ca>
   Copyright: See "COPYING" file.
-  Website: http://www.bidon.ca/gnome-turtle/
+  Website: https://savannah.nongnu.org/projects/gnome-turtle/
 
 Gnome Turtle (gnome-turtle) draws fractals from L-Systems in the
 GNOME 2 environment. It is intended to be a pseudo-academic and 
@@ -22,9 +22,9 @@ things in the code, such as how flex/bison is used.
 
 - Examples?
 
-Sure, take a look at the "examples" directory. Not all of them work,
-and others you may need to adapt to your environment, as this program
-has not been heavily tested.
+Look in the "examples" directory. Not all of them work, and others 
+you may need to adapt to your environment, as this program has not 
+been heavily tested.
 
 I found this fairly good random site from a search engine:
 http://spanky.triumf.ca/www/fractint/lsys/tutor.html
@@ -42,18 +42,35 @@ I will not feel like applying it.
 - About the code ..
 
 I'm not very familiar with GNOME, so I took a look at the "gnibbles"
-program from gnome-games, and copied the basic interface. Since they
-used a Pixmap widget for the main window, and that this was not 
-appropriate for this program, I replaced it with a gnome canvas. This
-is the main reason why the menus say "Game" and maybe I will fix that
-one day, but I tought it was convenient to build an interface in less
-than an hour.
+program from gnome-games, and copied the basic interface. The code
+change quite alot since, but you may still finds off-topic relics in
+the code.
 
-I used flex/bison only to validate the input, because I'm a very lazy
-person. The flex/bison input files (turtle-parser.{l,y}) are not yet
-in the "autogen" build system, as I still haven't figured that out. :)
-It may change in the future, and suggestions are welcomed.
+I'm a very lazy person and I used flex/bison only to validate the 
+input. I had to hack a bit to get the flex/bison input files 
+(turtle-parser.{l,y}) into the "autogen" system, but it seems to
+work now.
 
 The input is therefore first validated, then recursively drawn on the
-screen. The drawing is not particularly fault tolerant at the moment.
+screen. The drawing is not particularly fault tolerant at the moment
+and heavy recursivity can eat alot of memory because each "point" is
+kept in memory in order to be later erased. Of course, pure xlib
+coding would perhaps been more appropriate, but I didn't have much
+time and Gnome made it very easy to implement.
+
+- Building the code
+
+macros/ were taken from another package, since it wasn't very clear
+how they were supposed to land there and allow autogen to work.
+I also did a "cp /usr/share/automake/* ." to get the usual files.
+
+To build the code from CVS, just run:
+
+$ sh my_autogen.sh
+$ make
+
+For reference, I wrote the code on Debian GNU/Linux, powerpc using 
+GCC version 3.3.3.
+
+Happy hacking!
 
