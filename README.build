@@ -1,6 +1,0 @@
-
-
-macros/ -> copied from another package
-
-cp /usr/share/automake/* .
-
