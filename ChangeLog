@@ -1,6 +1,20 @@
 2005-01-24  Mathieu Lutfy  <mathieu@bidon.ca>
 
+	* README : Clarified information on how to build the application.
+
+	* src/gnome-turtle.c : When the screen is cleared, print, save and other
+		related menus are accordingly greyed out.
+
+2005-01-24  Mathieu Lutfy  <mathieu@bidon.ca>
+
 	* src/gnome-turtle.c : Added support for menu Edit -> Clear.
+
+	* src/gnome-turtle.c : When a new fractal is loaded (File->Open), the
+		screen is cleared from the previous drawing (helps avoid cluttering
+		the system's memory).
+
+	* src/gnome-turtle.c : When the screen is cleared, print, save and other
+		related menus are accordingly greyed out.
 
 2004-05-14  Mathieu Lutfy  <mathieu@bidon.ca>
 
