@@ -21,10 +21,10 @@
 */
 
 %{
-/*
-#include <config.h>
-*/
 #include "turtle-helpers.h"
+
+int yylex (void);
+int yyerror (const char *error);
 %}
 
 %union {

@@ -22,13 +22,9 @@
 
 %{
 #include <string.h>
-// #include "turtle-parser.tab.h"
+#include <glib.h>
 #include "turtle-parser.h"
-
-static char buffer[1024];
-static int cpt_buffer = 0;
-
-%} 
+%}
 
 SYMBOL		[A-Za-z]
 FLOAT		[0-9]+[\.,]?[0-9]*
@@ -91,9 +87,9 @@ int yywrap (void)
 	return 1;
 }
 
-int yyerror (char *error)
+int yyerror (const char *error)
 {
-	printf ("Line %d: %s (while parsing '%s')\n", yylineno, error, yytext);
+	g_warning ("Line %d: %s (while parsing '%s')", yylineno, error, yytext);
 	return 1;
 }
 

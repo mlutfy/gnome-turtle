@@ -1,370 +1,370 @@
 /*
    This file is part of gnome-turtle
    Written by: Mathieu Lutfy <mathieu@bidon.ca>
-   
+
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2 of the License, or
    (at your option) any later version.
-   
+
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-   
+
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place - Suite 330,
    Boston, MA 02111-1307, USA.
-   
+
    For further information, please contact at mathieu@bidon.ca
 */
 
 #include <locale.h>
-#include <unistd.h>
-#include <time.h>
 #include <errno.h>
+#include <stdio.h>
 
-#include <glib.h>
-#include <gnome.h>
-#include <libgnomeui/gnome-window-icon.h>
-
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include <adwaita.h>
+#include <glib/gi18n.h>
 
 #include "turtle-helpers.h"
 
+#ifdef HAVE_CONFIG_H
+#  include "config.h"
+#endif
+
+#ifndef VERSION
+#  define VERSION "0.2.0"
+#endif
+
 #define CANVAS_SIZE 600
 
+/* From the flex/bison parser. */
 extern FILE *yyin;
-extern int cpt_items; /* items in canvas */
+extern int yyparse (void);
 
-GtkWidget *window;
-GtkWidget *appbar;
-GtkWidget *canvas_area;
+typedef struct {
+	AdwApplicationWindow *window;
+	GtkWidget *drawing_area;
+	GArray *segments;   /* current fractal, owned here */
+	char *title;        /* basename of the loaded file, or NULL */
+} TurtleApp;
 
-/* Utility functions */
-extern void yyparse (void);
-void gui_init (int argc, char **argv);
-void gui_set_has_content (gboolean state);
+/* ----------------------------------------------------------------- */
 
-/* Prototypes for the menus */
-static void menu_open_cb (GtkWidget *widget, gpointer data);
-static void menu_open_ok_cb (GtkWidget *widget, gpointer data);
-static void menu_save_as_cb (GtkWidget *widget, gpointer data);
-static void menu_print_setup_cb (GtkWidget *widget, gpointer data);
-static void menu_print_cb (GtkWidget *widget, gpointer data);
-static void menu_about_cb (GtkWidget *widget, gpointer data);
-static void menu_quit_cb (GtkWidget *widget, gpointer data);
-static void menu_clear_cb (GtkWidget *widget, gpointer data);
-static void menu_preferences_cb (GtkWidget *widget, gpointer data);
-
-/* Prototypes for the signals and other events */
-// none..
-
-/* ----------- menus start ------------ */
-static GnomeUIInfo file_menu[] = {
-	GNOMEUIINFO_MENU_OPEN_ITEM (menu_open_cb, NULL),
-	GNOMEUIINFO_MENU_SAVE_AS_ITEM (menu_save_as_cb, NULL),
-	GNOMEUIINFO_SEPARATOR,
-	GNOMEUIINFO_MENU_PRINT_SETUP_ITEM (menu_print_setup_cb, NULL),
-	GNOMEUIINFO_MENU_PRINT_ITEM (menu_print_cb, NULL),
-	GNOMEUIINFO_SEPARATOR,
-	GNOMEUIINFO_MENU_QUIT_ITEM (menu_quit_cb, NULL),
-	GNOMEUIINFO_END
-};
-
-static GnomeUIInfo edit_menu[] = {
-	GNOMEUIINFO_MENU_CLEAR_ITEM (menu_clear_cb, NULL),
-	GNOMEUIINFO_END
-};
-
-static GnomeUIInfo settings_menu[] = {
-    GNOMEUIINFO_MENU_PREFERENCES_ITEM (menu_preferences_cb, NULL),
-    GNOMEUIINFO_END
-};
-
-static GnomeUIInfo help_menu[] = {
-	GNOMEUIINFO_HELP ("gnome-turtle"),
-	GNOMEUIINFO_MENU_ABOUT_ITEM (menu_about_cb, NULL),
-	GNOMEUIINFO_END
-};
-
-static GnomeUIInfo main_menu[] = {
-	GNOMEUIINFO_MENU_FILE_TREE (file_menu),
-	GNOMEUIINFO_MENU_EDIT_TREE (edit_menu),
-	GNOMEUIINFO_MENU_SETTINGS_TREE (settings_menu),
-	GNOMEUIINFO_MENU_HELP_TREE (help_menu),
-	GNOMEUIINFO_END
-};
-/* ----------- menus end ------------ */
-
-
-/* ------------ menu callbacks start ----------- */
 static void
-menu_open_cb (GtkWidget *widget, gpointer data)
+turtle_draw_cb (GtkDrawingArea *area,
+                cairo_t *cr,
+                int width,
+                int height,
+                gpointer user_data)
 {
-	GtkFileSelection *fsel;
+	TurtleApp *app = user_data;
 
-	fsel = GTK_FILE_SELECTION(gtk_file_selection_new("Open"));
+	/* The fractals were designed for a white background (the old GnomeCanvas
+	   default), so we keep one regardless of the desktop theme. */
+	cairo_set_source_rgb (cr, 1.0, 1.0, 1.0);
+	cairo_paint (cr);
 
-	/* Connect signals for ok/cancel (cancel kills the widget) */
-	gtk_signal_connect(GTK_OBJECT(fsel->ok_button), "clicked",
-			GTK_SIGNAL_FUNC(menu_open_ok_cb), fsel);
-	gtk_signal_connect_object
-		(GTK_OBJECT(fsel->cancel_button), "clicked",
-		 GTK_SIGNAL_FUNC(gtk_widget_destroy), 
-		 GTK_OBJECT(fsel));
-
-	/* position this dialog where the mouse is, this is normaly
-	   set according to preferences for gnome dialogs, but there
-	   is yet no file selection dialog in gnome */
-	// gtk_window_position(GTK_WINDOW(fsel), GTK_WIN_POS_MOUSE);
-
-	// set parent and show
-	gtk_window_set_transient_for (GTK_WINDOW (fsel), GTK_WINDOW (window));
-	gtk_widget_show (GTK_WIDGET (fsel));
+	turtle_render (cr, app->segments);
 }
 
 static void
-menu_open_ok_cb (GtkWidget *widget, gpointer data)
+turtle_set_title (TurtleApp *app, const char *filename)
 {
-	GtkFileSelection *fsel;
+	g_free (app->title);
+	app->title = filename ? g_path_get_basename (filename) : NULL;
 
-	fsel = (GtkFileSelection *) data;
-	g_return_if_fail(GTK_IS_FILE_SELECTION(fsel));
-
-	yyin = fopen (gtk_file_selection_get_filename(fsel), "r");
-
-	if (yyin) {
-		// all semms ok, close the dialog
-		gtk_widget_destroy(GTK_WIDGET(fsel));
-
-		turtle_init_parser ();
-		turtle_clear_screen ();
-		yyparse ();
-		turtle_draw_fractal (canvas_area, NULL);
-
-		gtk_widget_set_sensitive (file_menu[1].widget, TRUE);
-		gtk_widget_set_sensitive (file_menu[4].widget, TRUE);
+	if (app->title) {
+		char *full = g_strdup_printf ("%s — GNOME Turtle", app->title);
+		gtk_window_set_title (GTK_WINDOW (app->window), full);
+		g_free (full);
 	} else {
-		GtkWidget *dlg;
-
-		/* make a new dialog with the file selection as parent */
-		dlg = gnome_error_dialog_parented(strerror(errno),
-				GTK_WINDOW(fsel));
-		gtk_window_set_modal(GTK_WINDOW(dlg), TRUE);
+		gtk_window_set_title (GTK_WINDOW (app->window), "GNOME Turtle");
 	}
 }
 
-static void
-menu_save_as_cb (GtkWidget *widget, gpointer data)
+static gboolean
+turtle_load_file (TurtleApp *app, const char *path, GError **error)
 {
-	GtkWidget *dlg;
-
-	dlg = gnome_error_dialog_parented (
-			"This function is not implemented yet",
-			GTK_WINDOW(window));
-	gtk_window_set_modal(GTK_WINDOW(dlg), TRUE);
-	g_print ("menu_save_as clicked\n");
-}
-
-static void
-menu_print_setup_cb (GtkWidget *widget, gpointer data)
-{
-	GtkWidget *dlg;
-
-	dlg = gnome_error_dialog_parented (
-			"This function is not implemented yet",
-			GTK_WINDOW(window));
-	gtk_window_set_modal(GTK_WINDOW(dlg), TRUE);
-	g_print ("menu_print_setup_cb clicked\n");
-}
-
-/* Most of this is copied from the libgnomeprintui2.2-dev examples */
-static void
-menu_print_cb (GtkWidget *widget, gpointer data)
-{
-	GnomePrintContext *gpc;
-	GnomePrintJob *job;
-	GtkWidget *dialog;
-	gint response;
-
-	/* Create the objects */
-	job    = gnome_print_job_new (NULL);
-	dialog = gnome_print_dialog_new (job, "Gnome Turtle - Print Dialog", 0);
-	gpc    = gnome_print_job_get_context (job);
-
-	/* Run the dialog */
-	response = gnome_print_dialog_run (GNOME_PRINT_DIALOG (dialog));
-	if (response == GNOME_PRINT_DIALOG_RESPONSE_CANCEL) {
-		g_print ("Printing was canceled\n");
-		return;
+	yyin = fopen (path, "r");
+	if (yyin == NULL) {
+		int err = errno;
+		g_set_error (error, G_FILE_ERROR, g_file_error_from_errno (err),
+		             "%s: %s", path, g_strerror (err));
+		return FALSE;
 	}
 
-	/* Draw & print */
-	g_print ("Printing: Generating fractal on the GnomePrintContext\n");
-	turtle_draw_fractal (NULL, gpc);
-	gnome_print_job_close (job);
-	gnome_print_job_print (job);
-	g_print ("Printing: Finished\n");
+	/* The L-System files use '.' as the decimal separator, so the parser's
+	   strtod() must run under the C numeric locale. We force it here rather
+	   than once at startup because GTK resets LC_ALL during initialisation,
+	   which would otherwise clobber a locale set in main(). */
+	setlocale (LC_NUMERIC, "C");
 
-	g_object_unref (G_OBJECT (gpc));
-	g_object_unref (G_OBJECT (job));
+	turtle_init_parser ();
+	yyparse ();
+	fclose (yyin);
+	yyin = NULL;
+
+	g_clear_pointer (&app->segments, g_array_unref);
+	app->segments = turtle_generate ();
+
+	turtle_set_title (app, path);
+	gtk_widget_queue_draw (app->drawing_area);
+	return TRUE;
 }
 
 static void
-menu_quit_cb (GtkWidget *widget, gpointer data)
+turtle_report_error (TurtleApp *app, const char *message)
 {
-	gtk_main_quit ();
+	AdwDialog *dialog = adw_alert_dialog_new (_("Could not open file"), message);
+
+	adw_alert_dialog_add_response (ADW_ALERT_DIALOG (dialog), "ok", _("_OK"));
+	adw_dialog_present (dialog, GTK_WIDGET (app->window));
 }
 
-static void
-menu_clear_cb (GtkWidget *widget, gpointer data)
-{
-	turtle_clear_screen ();
-}
+/* ------------------------------ actions --------------------------- */
 
 static void
-menu_preferences_cb (GtkWidget *widget, gpointer data)
+open_response_cb (GObject *source, GAsyncResult *result, gpointer user_data)
 {
-	GtkWidget *dlg;
+	TurtleApp *app = user_data;
+	GtkFileDialog *dialog = GTK_FILE_DIALOG (source);
+	g_autoptr (GError) error = NULL;
+	g_autoptr (GFile) file = gtk_file_dialog_open_finish (dialog, result, &error);
 
-	dlg = gnome_error_dialog_parented (
-			"This function is not implemented yet",
-			GTK_WINDOW(window));
-	gtk_window_set_modal(GTK_WINDOW(dlg), TRUE);
-	g_print ("turtle_preferences_cb clicked\n");
-}
-
-static void
-menu_about_cb (GtkWidget *widget, gpointer data)
-{
-	static GtkWidget *about = NULL;
-	GdkPixbuf *pixbuf = NULL;
-
-	const gchar *authors[] = {"Mathieu Lutfy", NULL};
-	gchar *documenters[] = {
-		NULL
-	};
-	
-	/* Translator credits */
-	gchar *translator_credits = _("translator_credits");
-
-	if (about != NULL) {
-		gtk_window_present (GTK_WINDOW(about));
+	if (file == NULL) {
+		/* User dismissed the dialog: not an error worth reporting. */
+		if (error && !g_error_matches (error, GTK_DIALOG_ERROR, GTK_DIALOG_ERROR_DISMISSED))
+			turtle_report_error (app, error->message);
 		return;
 	}
 
 	{
-		char *filename = NULL;
+		g_autofree char *path = g_file_get_path (file);
+		g_autoptr (GError) load_error = NULL;
 
-		filename = gnome_program_locate_file (NULL,
-				GNOME_FILE_DOMAIN_APP_PIXMAP, "gnome-turtle.png",
-				TRUE, NULL);
-		if (filename != NULL) {
-			pixbuf = gdk_pixbuf_new_from_file(filename, NULL);
-			g_free (filename);
-		}
-	}
-
-	about = gnome_about_new (_("Gnome-Turtle"), VERSION,
-				 "Copyright \xc2\xa9 2004 Mathieu Lutfy",
-				 _("A Turtle and Lsys drawing program for GNOME."),
-				 (const char **)authors,
-				 (const char **)documenters,
-				 strcmp (translator_credits, "translator_credits") != 0 ? translator_credits : NULL,
-				 pixbuf);
-   
-	if (pixbuf != NULL)
-		gdk_pixbuf_unref (pixbuf);
-	
-	gtk_window_set_transient_for (GTK_WINDOW (about), GTK_WINDOW (window));
-	g_signal_connect (G_OBJECT (about), "destroy", G_CALLBACK
-			(gtk_widget_destroyed), &about);
-	gtk_widget_show (about);
-}
-/* ------------ menu callbacks end ----------- */
-
-void
-gui_init (int argc, char **argv)
-{
-	GdkColor white = { 0, 0xffff, 0xffff, 0xffff };
-
-	window = gnome_app_new (PACKAGE, "GNOME Turtle");
-	gtk_window_set_resizable (GTK_WINDOW (window), TRUE);
-	gtk_widget_realize (window);
-	g_signal_connect (G_OBJECT (window), "delete_event",
-		G_CALLBACK (menu_quit_cb), NULL);
-	
-	canvas_area = gnome_canvas_new ();
-	gtk_widget_set_usize (canvas_area, CANVAS_SIZE, CANVAS_SIZE);
-	gtk_widget_modify_bg (canvas_area, GTK_STATE_NORMAL, &white);
-	gnome_canvas_set_pixels_per_unit (GNOME_CANVAS (canvas_area), 1);
-	gnome_canvas_set_scroll_region (GNOME_CANVAS (canvas_area), 0.0, 0.0, CANVAS_SIZE, CANVAS_SIZE);
-
-	gnome_app_set_contents (GNOME_APP (window), canvas_area);
-	gtk_widget_show (canvas_area);
-
-	gnome_app_create_menus (GNOME_APP (window), main_menu);
-
-	appbar = gnome_appbar_new (FALSE, TRUE, GNOME_PREFERENCES_USER);
-	gnome_app_set_statusbar (GNOME_APP (window), appbar);
-	gnome_app_install_menu_hints (GNOME_APP (window), main_menu);
-
-	if (argc > 1) {
-		turtle_init_parser ();
-		yyin = fopen (argv[1], "r");
-		if (!yyin) {
-			g_print ("%s: %s\n", argv[1], strerror(errno));
-			exit (1);
-		}
-		yyparse ();
-		turtle_draw_fractal (canvas_area, NULL);
-
-		gui_set_has_content (TRUE);
-	} else {
-		gui_set_has_content (FALSE);
+		if (path == NULL)
+			turtle_report_error (app, _("This location is not a local file."));
+		else if (!turtle_load_file (app, path, &load_error))
+			turtle_report_error (app, load_error->message);
 	}
 }
 
-void
-gui_set_has_content (gboolean state)
+static void
+action_open (GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
-	gtk_widget_set_sensitive (file_menu[1].widget, state);
-	gtk_widget_set_sensitive (file_menu[4].widget, state);
+	TurtleApp *app = user_data;
+	GtkFileDialog *dialog = gtk_file_dialog_new ();
+	GtkFileFilter *filter = gtk_file_filter_new ();
+	g_autoptr (GListStore) filters = g_list_store_new (GTK_TYPE_FILE_FILTER);
+
+	gtk_file_filter_set_name (filter, _("L-System files"));
+	gtk_file_filter_add_pattern (filter, "t*");
+	gtk_file_filter_add_pattern (filter, "*.lsys");
+	g_list_store_append (filters, filter);
+	gtk_file_dialog_set_filters (dialog, G_LIST_MODEL (filters));
+
+	gtk_file_dialog_set_title (dialog, _("Open L-System"));
+	gtk_file_dialog_open (dialog, GTK_WINDOW (app->window), NULL,
+	                      open_response_cb, app);
+	g_object_unref (dialog);
+}
+
+static void
+action_clear (GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+	TurtleApp *app = user_data;
+
+	g_clear_pointer (&app->segments, g_array_unref);
+	turtle_set_title (app, NULL);
+	gtk_widget_queue_draw (app->drawing_area);
+}
+
+static void
+print_draw_page_cb (GtkPrintOperation *op,
+                    GtkPrintContext *context,
+                    int page_nr,
+                    gpointer user_data)
+{
+	TurtleApp *app = user_data;
+	cairo_t *cr = gtk_print_context_get_cairo_context (context);
+
+	turtle_render (cr, app->segments);
+}
+
+static void
+action_print (GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+	TurtleApp *app = user_data;
+	GtkPrintOperation *op;
+
+	if (app->segments == NULL || app->segments->len == 0) {
+		turtle_report_error (app, _("There is nothing to print yet. Open an L-System first."));
+		return;
+	}
+
+	op = gtk_print_operation_new ();
+	gtk_print_operation_set_n_pages (op, 1);
+	g_signal_connect (op, "draw-page", G_CALLBACK (print_draw_page_cb), app);
+	gtk_print_operation_run (op, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG,
+	                         GTK_WINDOW (app->window), NULL);
+	g_object_unref (op);
+}
+
+static void
+action_about (GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+	TurtleApp *app = user_data;
+	const char *developers[] = { "Mathieu Lutfy", NULL };
+	AdwDialog *about;
+
+	about = adw_about_dialog_new ();
+	adw_about_dialog_set_application_name (ADW_ABOUT_DIALOG (about), _("GNOME Turtle"));
+	adw_about_dialog_set_application_icon (ADW_ABOUT_DIALOG (about), "gnome-turtle");
+	adw_about_dialog_set_version (ADW_ABOUT_DIALOG (about), VERSION);
+	adw_about_dialog_set_developer_name (ADW_ABOUT_DIALOG (about), "Mathieu Lutfy");
+	adw_about_dialog_set_developers (ADW_ABOUT_DIALOG (about), developers);
+	adw_about_dialog_set_copyright (ADW_ABOUT_DIALOG (about), "© 2004 Mathieu Lutfy");
+	adw_about_dialog_set_license_type (ADW_ABOUT_DIALOG (about), GTK_LICENSE_GPL_2_0);
+	adw_about_dialog_set_comments (ADW_ABOUT_DIALOG (about),
+	                               _("Draws fractals from L-Systems."));
+	adw_about_dialog_set_website (ADW_ABOUT_DIALOG (about),
+	                              "https://savannah.nongnu.org/projects/gnome-turtle/");
+
+	adw_dialog_present (about, GTK_WIDGET (app->window));
+}
+
+static void
+action_quit (GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+	GApplication *gapp = user_data;
+	g_application_quit (gapp);
+}
+
+/* --------------------------- construction ------------------------- */
+
+static const GActionEntry win_actions[] = {
+	{ "open",  action_open,  NULL, NULL, NULL },
+	{ "clear", action_clear, NULL, NULL, NULL },
+	{ "print", action_print, NULL, NULL, NULL },
+	{ "about", action_about, NULL, NULL, NULL },
+};
+
+static GMenuModel *
+build_menu (void)
+{
+	GMenu *menu = g_menu_new ();
+	GMenu *section = g_menu_new ();
+
+	g_menu_append (section, _("_Open…"), "win.open");
+	g_menu_append (section, _("_Clear"), "win.clear");
+	g_menu_append (section, _("_Print…"), "win.print");
+	g_menu_append_section (menu, NULL, G_MENU_MODEL (section));
+	g_object_unref (section);
+
+	section = g_menu_new ();
+	g_menu_append (section, _("_About GNOME Turtle"), "win.about");
+	g_menu_append (section, _("_Quit"), "app.quit");
+	g_menu_append_section (menu, NULL, G_MENU_MODEL (section));
+	g_object_unref (section);
+
+	return G_MENU_MODEL (menu);
+}
+
+static TurtleApp *
+turtle_app_get (GtkApplication *gtk_app)
+{
+	TurtleApp *app = g_object_get_data (G_OBJECT (gtk_app), "turtle-app");
+
+	if (app != NULL)
+		return app;
+
+	app = g_new0 (TurtleApp, 1);
+
+	{
+		GtkWidget *toolbar = adw_toolbar_view_new ();
+		GtkWidget *header = adw_header_bar_new ();
+		GtkWidget *open_button = gtk_button_new_with_label (_("Open"));
+		GtkWidget *menu_button = gtk_menu_button_new ();
+		GtkWidget *scrolled = gtk_scrolled_window_new ();
+		g_autoptr (GMenuModel) menu = build_menu ();
+
+		app->window = ADW_APPLICATION_WINDOW (adw_application_window_new (GTK_APPLICATION (gtk_app)));
+		gtk_window_set_default_size (GTK_WINDOW (app->window), CANVAS_SIZE + 40, CANVAS_SIZE + 80);
+		gtk_window_set_title (GTK_WINDOW (app->window), "GNOME Turtle");
+
+		g_action_map_add_action_entries (G_ACTION_MAP (app->window), win_actions,
+		                                 G_N_ELEMENTS (win_actions), app);
+
+		gtk_actionable_set_action_name (GTK_ACTIONABLE (open_button), "win.open");
+		adw_header_bar_pack_start (ADW_HEADER_BAR (header), open_button);
+
+		gtk_menu_button_set_icon_name (GTK_MENU_BUTTON (menu_button), "open-menu-symbolic");
+		gtk_menu_button_set_menu_model (GTK_MENU_BUTTON (menu_button), menu);
+		adw_header_bar_pack_end (ADW_HEADER_BAR (header), menu_button);
+
+		app->drawing_area = gtk_drawing_area_new ();
+		gtk_drawing_area_set_content_width (GTK_DRAWING_AREA (app->drawing_area), CANVAS_SIZE);
+		gtk_drawing_area_set_content_height (GTK_DRAWING_AREA (app->drawing_area), CANVAS_SIZE);
+		gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (app->drawing_area),
+		                                turtle_draw_cb, app, NULL);
+
+		gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolled), app->drawing_area);
+		gtk_widget_set_vexpand (scrolled, TRUE);
+
+		adw_toolbar_view_add_top_bar (ADW_TOOLBAR_VIEW (toolbar), header);
+		adw_toolbar_view_set_content (ADW_TOOLBAR_VIEW (toolbar), scrolled);
+		adw_application_window_set_content (app->window, toolbar);
+	}
+
+	g_object_set_data_full (G_OBJECT (gtk_app), "turtle-app", app, g_free);
+	return app;
+}
+
+static void
+app_activate (GApplication *gapp, gpointer user_data)
+{
+	TurtleApp *app = turtle_app_get (GTK_APPLICATION (gapp));
+	gtk_window_present (GTK_WINDOW (app->window));
+}
+
+static void
+app_open (GApplication *gapp, GFile **files, int n_files, const char *hint, gpointer user_data)
+{
+	TurtleApp *app = turtle_app_get (GTK_APPLICATION (gapp));
+	g_autofree char *path = g_file_get_path (files[0]);
+	g_autoptr (GError) error = NULL;
+
+	if (path && !turtle_load_file (app, path, &error))
+		g_warning ("%s", error->message);
+
+	gtk_window_present (GTK_WINDOW (app->window));
 }
 
 int
 main (int argc, char **argv)
 {
-	GnomeProgram *program;
+	g_autoptr (AdwApplication) app = NULL;
+	const GActionEntry app_actions[] = {
+		{ "quit", action_quit, NULL, NULL, NULL },
+	};
+	int status;
 
-#ifdef ENABLE_NLS
-	bindtextdomain (PACKAGE, GNOMETURTLE_LOCALEDIR);
-	bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
-	textdomain (PACKAGE);
-#endif
+	/* NB: the C numeric locale needed by the parser (strtod) is forced in
+	   turtle_load_file(), after GTK has initialised, not here. */
 
-	/* Initialize gnome program */
-	program = gnome_program_init (PACKAGE, VERSION, LIBGNOMEUI_MODULE,
-				argc, argv, 
-				GNOME_PARAM_POPT_TABLE, NULL, /* options, */
-				GNOME_PARAM_HUMAN_READABLE_NAME, _("Turtle Drawing"),
-				GNOME_PARAM_APP_DATADIR, DATADIR, NULL);
+	app = adw_application_new ("ca.bidon.GnomeTurtle", G_APPLICATION_HANDLES_OPEN);
+	g_action_map_add_action_entries (G_ACTION_MAP (app), app_actions,
+	                                 G_N_ELEMENTS (app_actions), app);
+	gtk_application_set_accels_for_action (GTK_APPLICATION (app), "app.quit",
+	                                       (const char *[]){ "<Ctrl>q", NULL });
+	gtk_application_set_accels_for_action (GTK_APPLICATION (app), "win.open",
+	                                       (const char *[]){ "<Ctrl>o", NULL });
 
-	gnome_window_icon_set_default_from_file (GNOME_ICONDIR"/gnome-turtle.png");
+	g_signal_connect (app, "activate", G_CALLBACK (app_activate), NULL);
+	g_signal_connect (app, "open", G_CALLBACK (app_open), NULL);
 
-	/* Important: for strtod(3) and decimal number */
-	// TODO: Maybe make this a preference, or autodetect it
-	setlocale (LC_NUMERIC, "C");
-
-	gui_init (argc, argv);
-	gtk_widget_show (window);
-
-	gtk_main ();
-
-	return 0;
+	status = g_application_run (G_APPLICATION (app), argc, argv);
+	return status;
 }
-
